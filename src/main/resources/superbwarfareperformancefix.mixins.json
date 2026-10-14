@@ -1,0 +1,14 @@
+{
+  "required": false,
+  "minVersion": "0.8.5",
+  "package": "com.rinkynooble.superbwarfareperformancefix.mixin",
+  "plugin": "com.rinkynooble.superbwarfareperformancefix.MixinPlugin",
+  "compatibilityLevel": "JAVA_17",
+  "refmap": "superbwarfareperformancefix.refmap.json",
+  "mixins": [
+    "SeekToolMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 0
+  }
+}

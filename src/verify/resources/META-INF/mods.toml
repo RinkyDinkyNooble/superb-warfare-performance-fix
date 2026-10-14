@@ -1,0 +1,16 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="0BSD"
+
+[[mods]]
+modId="superbwarfareperformancefixverify"
+version="1.0.0"
+displayName="Superb Warfare Performance Fix Checks"
+description='''Dev-only, never shipped. /sbwfixverify compares the patched smoke check with the original on every entity in the level.'''
+
+[[dependencies.superbwarfareperformancefixverify]]
+    modId="superbwarfareperformancefix"
+    mandatory=true
+    versionRange="[1,)"
+    ordering="AFTER"
+    side="BOTH"
