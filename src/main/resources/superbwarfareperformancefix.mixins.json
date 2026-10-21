@@ -8,6 +8,9 @@
   "mixins": [
     "SeekToolMixin"
   ],
+  "client": [
+    "PlayerRendererMixin"
+  ],
   "injectors": {
     "defaultRequire": 0
   }

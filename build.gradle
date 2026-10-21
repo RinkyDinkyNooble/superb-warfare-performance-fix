@@ -16,20 +16,6 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 
 println "Java: ${System.getProperty 'java.version'}, JVM: ${System.getProperty 'java.vm.version'} (${System.getProperty 'java.vendor'}), Arch: ${System.getProperty 'os.arch'}"
 
-minecraft {
-    mappings channel: 'official', version: minecraft_version
-}
-
-mixin {
-    add sourceSets.main, "${mod_id}.refmap.json"
-    config "${mod_id}.mixins.json"
-}
-
-repositories {
-    // Superb Warfare is read from libs/ (see README).
-    flatDir { dir 'libs' }
-}
-
 // Dev-only checks (src/verify), run from Gradle. Never shipped.
 sourceSets {
     verify {
@@ -38,12 +24,49 @@ sourceSets {
     }
 }
 
+minecraft {
+    mappings channel: 'official', version: minecraft_version
+
+    runs {
+        // Dev only, for verifyThermal: loads this mod and the dev-mapped mods in run/mods (see README) on the client
+        // side without opening a window, and exports PlayerRenderer with every mod's mixins applied. Generates nothing.
+        data {
+            workingDirectory project.file('run')
+            property 'mixin.debug.export', 'true'
+            // Superb Warfare's and playerAnimator's mixins use production names, so the dev run remaps them.
+            property 'mixin.env.remapRefMap', 'true'
+            property 'mixin.env.refMapRemappingFile', "${projectDir}/build/createSrgToMcp/output.srg"
+            args '--mod', 'superbwarfareperformancefixverify', '--output', file('build/runData')
+            mods {
+                "${mod_id}" {
+                    source sourceSets.main
+                }
+                superbwarfareperformancefixverify {
+                    source sourceSets.verify
+                }
+            }
+        }
+    }
+}
+
+mixin {
+    add sourceSets.main, "${mod_id}.refmap.json"
+    config "${mod_id}.mixins.json"
+}
+
+repositories {
+    // Superb Warfare and playerAnimator are read from libs/ (see README).
+    flatDir { dir 'libs' }
+}
+
 dependencies {
     minecraft "net.minecraftforge:forge:${minecraft_version}-${forge_version}"
     annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
 
     // Compiled against so the mixin processor can check the targets. Never packed into this mod's jar.
     compileOnly fg.deobf("local:superbwarfare:${superbwarfare_version}")
+    // Optional at runtime: the thermal arm patch only applies, and calls it, when it's installed.
+    compileOnly fg.deobf("local:player-animation-lib-forge:${player_animator_version}")
     verifyImplementation fg.deobf("local:superbwarfare:${superbwarfare_version}")
 }
 
@@ -96,11 +119,26 @@ tasks.register('verifySmoke', JavaExec) {
     doFirst { workingDir.mkdirs() }
 }
 
+// Checks that Superb Warfare's thermal callback still has the shape the thermal arm patch was written for, in the dev
+// and production jars, and, once gradlew runData has exported PlayerRenderer, that the patch marks the model right
+// before that callback.
+tasks.register('verifyThermal', JavaExec) {
+    javaLauncher = javaToolchains.launcherFor { languageVersion = JavaLanguageVersion.of(17) }
+    classpath = sourceSets.verify.runtimeClasspath
+    mainClass = 'com.rinkynooble.superbwarfareperformancefix.verify.ThermalCheck'
+    workingDir = layout.buildDirectory.dir('verify').get().asFile
+    systemProperty 'sbwfix.productionJar', file("libs/superbwarfare-${superbwarfare_version}.jar").absolutePath
+    systemProperty 'sbwfix.exportedPlayerRenderer',
+            file('run/.mixin.out/class/net/minecraft/client/renderer/entity/player/PlayerRenderer.class').absolutePath
+    doFirst { workingDir.mkdirs() }
+}
+
 // A dev-only mod with the /sbwfixverify command (src/verify), for test servers. Never shipped.
 tasks.register('verifyJar', Jar) {
     archiveClassifier = 'verify'
     from sourceSets.verify.output
-    exclude 'com/rinkynooble/superbwarfareperformancefix/verify/SmokeCheck*', '*.refmap.json'
+    exclude 'com/rinkynooble/superbwarfareperformancefix/verify/SmokeCheck*',
+            'com/rinkynooble/superbwarfareperformancefix/verify/ThermalCheck*', '*.refmap.json'
     finalizedBy 'reobfVerifyJar'
 }
 

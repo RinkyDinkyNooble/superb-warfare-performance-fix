@@ -137,6 +137,14 @@ public final class SmokeCheckShape {
 
     /** One line per instruction, starting with its opcode; jumps name their target by instruction number. */
     public static List<String> describe(MethodNode method) {
+        return describe(method, null);
+    }
+
+    /**
+     * The same, also leaving out member names for calls on {@code shadowOwner}: a mixin calling Minecraft's methods
+     * through its shadows, named like Minecraft's own.
+     */
+    public static List<String> describe(MethodNode method, String shadowOwner) {
         List<AbstractInsnNode> real = new ArrayList<>();
         for (AbstractInsnNode insn : method.instructions) {
             if (insn.getOpcode() >= 0) {
@@ -157,9 +165,9 @@ public final class SmokeCheckShape {
             } else if (insn instanceof LdcInsnNode l) {
                 lines.add(op + " " + (l.cst instanceof Type type ? type.getDescriptor() : l.cst));
             } else if (insn instanceof MethodInsnNode m) {
-                lines.add(op + " " + m.owner + " " + nameUnlessMinecraft(m.owner, m.name) + m.desc);
+                lines.add(op + " " + m.owner + " " + nameUnlessMinecraft(m.owner, m.name, shadowOwner) + m.desc);
             } else if (insn instanceof FieldInsnNode f) {
-                lines.add(op + " " + f.owner + " " + nameUnlessMinecraft(f.owner, f.name) + " " + f.desc);
+                lines.add(op + " " + f.owner + " " + nameUnlessMinecraft(f.owner, f.name, shadowOwner) + " " + f.desc);
             } else if (insn instanceof InvokeDynamicInsnNode d) {
                 Object impl = d.bsmArgs.length > 1 ? d.bsmArgs[1] : null;
                 lines.add(op + " " + d.name + d.desc + " -> " + (impl instanceof Handle h
@@ -172,8 +180,8 @@ public final class SmokeCheckShape {
         return lines;
     }
 
-    private static String nameUnlessMinecraft(String owner, String name) {
-        return owner.startsWith("net/minecraft/") ? "" : name;
+    private static String nameUnlessMinecraft(String owner, String name, String shadowOwner) {
+        return owner.startsWith("net/minecraft/") || owner.equals(shadowOwner) ? "" : name;
     }
 
     private static int target(List<AbstractInsnNode> real, LabelNode label) {

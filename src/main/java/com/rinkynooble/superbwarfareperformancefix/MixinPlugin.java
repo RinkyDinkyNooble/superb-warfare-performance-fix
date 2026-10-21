@@ -1,5 +1,6 @@
 package com.rinkynooble.superbwarfareperformancefix;
 
+import net.minecraftforge.fml.loading.LoadingModList;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.objectweb.asm.tree.AbstractInsnNode;
@@ -22,7 +23,8 @@ import java.util.Set;
  * <p>Every injector is optional ({@code defaultRequire: 0}), so a Superb Warfare version with different code still
  * loads and the change simply does nothing. To tell the two apart, this checks the patched class for calls to each
  * of the mixin's handler methods. The smoke patch is also skipped when the smoke check has changed (see
- * {@link SmokeCheckShape}).
+ * {@link SmokeCheckShape}), and the thermal arm patch without playerAnimator or when Superb Warfare's thermal arm has
+ * changed (see {@link ThermalArmShape}).
  */
 public class MixinPlugin implements IMixinConfigPlugin {
     private static final Logger LOGGER = LogManager.getLogger("Superb Warfare Performance Fix");
@@ -49,7 +51,27 @@ public class MixinPlugin implements IMixinConfigPlugin {
         if (targetClassName.equals(SmokeCheckShape.SEEK_TOOL)) {
             return smokeCheckUnchanged(targetClassName);
         }
+        if (targetClassName.equals(ThermalArmShape.PLAYER_RENDERER)) {
+            return thermalArmNeedsFix();
+        }
         return true;
+    }
+
+    private static boolean thermalArmNeedsFix() {
+        if (LoadingModList.get().getModFileById(SuperbWarfarePerformanceFix.PLAYER_ANIMATOR) == null) {
+            LOGGER.info("Not patching PlayerRenderer: playerAnimator isn't installed, so Superb Warfare's thermal arm needs no fix.");
+            return false;
+        }
+        try {
+            ClassNode thermalMixin = MixinService.getService().getBytecodeProvider().getClassNode(ThermalArmShape.THERMAL_MIXIN);
+            if (ThermalArmShape.matches(thermalMixin)) {
+                return true;
+            }
+            LOGGER.warn("Not patching PlayerRenderer: this Superb Warfare version changed how it draws the thermal arm, so it's drawn as before.");
+        } catch (Exception e) {
+            LOGGER.warn("Not patching PlayerRenderer: couldn't read Superb Warfare's thermal arm ({}), so it's drawn as before.", e.toString());
+        }
+        return false;
     }
 
     private static boolean smokeCheckUnchanged(String targetClassName) {

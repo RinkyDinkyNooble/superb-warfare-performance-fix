@@ -18,11 +18,15 @@ Looking at a zombie: **50 FPS** before, **103 FPS** after.
 
 - Every tick, whether or not you hold anything from Superb Warfare, it checks each mob along your view for a smoke grenade cloud nearby. Each check went through every mob within 8 blocks, so in a crowd the cost grew with the square of its size: 22% of the render thread in a 515-mob scene. The check now looks only at smoke clouds and gives the same answers.
 
+## Bug Fixes
+
+- With thermal imaging on, a large white arm no longer stretches across the view in packs with playerAnimator (for example with TaCZ guns).
+
 ## Option
 
 - `hideAmmoCountOverlay` in `config/superbwarfareperformancefix-client.toml` hides the ammo count overlay shown while you hold ammo or an ammo box. Off by default.
 
-Apart from that option, everything looks and plays the same.
+Apart from that option and the thermal arm fix, everything looks and plays the same.
 
 ### Credit
 

@@ -10,6 +10,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.entity.EntityTypeTest;
 import net.minecraftforge.common.MinecraftForge;
+import net.minecraftforge.data.loading.DatagenModLoader;
 import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.fml.common.Mod;
 
@@ -27,8 +28,13 @@ public class VerifyMod {
     public static final String MODID = "superbwarfareperformancefixverify";
     private static final int ROUNDS = 5;
 
-    public VerifyMod() {
+    public VerifyMod() throws ClassNotFoundException {
         MinecraftForge.EVENT_BUS.addListener(VerifyMod::onRegisterCommands);
+        if (DatagenModLoader.isRunningDataGen()) {
+            // gradlew runData: loading PlayerRenderer applies every mod's mixins to it, and Mixin exports the result
+            // for gradlew verifyThermal.
+            Class.forName("net.minecraft.client.renderer.entity.player.PlayerRenderer", false, VerifyMod.class.getClassLoader());
+        }
     }
 
     private static void onRegisterCommands(RegisterCommandsEvent event) {
