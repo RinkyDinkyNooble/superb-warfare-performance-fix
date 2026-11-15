@@ -9,7 +9,8 @@
     "SeekToolMixin"
   ],
   "client": [
-    "PlayerRendererMixin"
+    "PlayerRendererMixin",
+    "SodiumBakedChunkWriterMixin"
   ],
   "injectors": {
     "defaultRequire": 0

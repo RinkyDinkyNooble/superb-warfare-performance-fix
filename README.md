@@ -21,18 +21,19 @@ Looking at a zombie: **50 FPS** before, **103 FPS** after.
 ## Bug Fixes
 
 - With thermal imaging on and playerAnimator installed, a large white arm could stretch across the view. Superb Warfare draws the first-person arm a second time, white, in thermal, and sets the player model up again for it. playerAnimator keeps third-person animations off first-person arms by marking the model just before vanilla's setup, and Superb Warfare's second setup came after that mark was used up. So once a third-person animation was playing (TaCZ starts its gun poses whenever your whole body is drawn holding a gun, in the inventory or in F5), it posed the white arm. The patch marks the model again right before Superb Warfare's setup, the same way playerAnimator does, so the white arm sits where the normal arm is, as it does without playerAnimator. Nothing changes with thermal off or without playerAnimator.
+- With a shader pack (Oculus) and Embeddium, stray triangles (spikes, stretched stripes in the vehicle's colours, often stuck near the crosshair) appeared around the speed boats and the A-10, AC-130, BMP-2, FH-77 and Kirov. Those models have poly meshes, which SimpleBedrockModel (bundled in Superb Warfare) draws as triangles and, with Embeddium, writes in batches through Embeddium's fast vertex path. A shader pack gives entity buffers Oculus's longer vertex layout, so each batch goes through Oculus's converter, which only converts whole groups of 4 vertices and leaves the last one to three slots unwritten while the buffer moves past them. Triangles come in threes, so most poly meshes ended with a triangle whose corners were whatever an earlier frame left in that memory. The patch lets SimpleBedrockModel's fast write go ahead only when the buffer takes the vertices as a plain copy (no shader pack); otherwise SimpleBedrockModel writes the triangles one vertex at a time, its own fallback, which Oculus fills in correctly. Nothing changes without a shader pack or without Embeddium.
 
 ## Option
 
 - `hideAmmoCountOverlay` in `config/superbwarfareperformancefix-client.toml` hides the ammo count overlay shown while you hold ammo or an ammo box. Off by default.
 
-Apart from that option and the thermal arm fix, everything looks and plays the same.
+Apart from that option and the two fixes, everything looks and plays the same.
 
 The log has one line for each patched class, saying how many changes applied. If a Superb Warfare version changes the smoke check or the thermal arm, the patch leaves that part alone and says so in the log. Without playerAnimator, the log says the thermal arm needs no fix.
 
 ## Building
 
-Put Superb Warfare 0.8.9.2 (`superbwarfare-0.8.9.2-mc1.20.1-65d985a64-all.jar` from CurseForge) in `libs/` as `superbwarfare-0.8.9.2.jar`, and playerAnimator (`player-animation-lib-forge-1.0.2-rc1+1.20.jar`) in `libs/` as it is, then:
+Put Superb Warfare 0.8.9.2 (`superbwarfare-0.8.9.2-mc1.20.1-65d985a64-all.jar` from CurseForge) in `libs/` as `superbwarfare-0.8.9.2.jar`, playerAnimator (`player-animation-lib-forge-1.0.2-rc1+1.20.jar`) in `libs/` as it is, SimpleBedrockModel 2.5.1 (inside the Superb Warfare jar, `META-INF/jarjar/simplebedrockmodel-2.5.1-forge-mc1.20.1.jar`) as `simplebedrockmodel-2.5.1.jar`, and Embeddium 0.3.31 as `embeddium-0.3.31.jar`, then:
 
 - `gradlew build` makes the mod in `build/libs/`.
 - `gradlew verifySmoke` checks that the smoke check gives the same results before and after the patch, on generated worlds, and that Superb Warfare's smoke check is still the one the patch was written for.

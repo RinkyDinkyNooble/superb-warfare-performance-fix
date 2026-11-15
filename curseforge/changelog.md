@@ -1,3 +1,7 @@
+## 1.1.1 (2026-11-15)
+
+- Fixed: with a shader pack and Embeddium, stray spikes and stretched stripes, often stuck near the crosshair, no longer appear around Superb Warfare's speed boats and a few other vehicles (A-10, AC-130, BMP-2, FH-77, Kirov). Client only; nothing changes without a shader pack.
+
 ## 1.1.0 (2026-10-21)
 
 - Fixed: with thermal imaging on, a large white arm no longer stretches across the view when playerAnimator is installed (TaCZ's third-person gun poses). The fix is on the client and only applies with playerAnimator installed.

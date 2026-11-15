@@ -67,6 +67,10 @@ dependencies {
     compileOnly fg.deobf("local:superbwarfare:${superbwarfare_version}")
     // Optional at runtime: the thermal arm patch only applies, and calls it, when it's installed.
     compileOnly fg.deobf("local:player-animation-lib-forge:${player_animator_version}")
+    // For the poly mesh fix: SimpleBedrockModel (nested in Superb Warfare's jar) and Embeddium. The patch only
+    // applies when SimpleBedrockModel loads its Embeddium writer, which it does only with Embeddium installed.
+    compileOnly fg.deobf("local:simplebedrockmodel:${simplebedrockmodel_version}")
+    compileOnly fg.deobf("local:embeddium:${embeddium_version}")
     verifyImplementation fg.deobf("local:superbwarfare:${superbwarfare_version}")
 }
 
